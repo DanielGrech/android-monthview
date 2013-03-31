@@ -29,6 +29,7 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
 
     private int mMonth;
     private int mYear;
+    private int mSelectedMonthDay = -1;
 
     public MonthView(final Context context) {
         super(context);
@@ -72,8 +73,8 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek == firstDayOfWeek) {
             //Hooray, no offset needed..
-        } else{
-            while(dayOfWeek != firstDayOfWeek) {
+        } else {
+            while (dayOfWeek != firstDayOfWeek) {
                 cal.add(Calendar.DAY_OF_YEAR, -1);
                 dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
             }
@@ -84,7 +85,7 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
             final int currentMonth = cal.get(Calendar.MONTH);
             final int currentYear = cal.get(Calendar.YEAR);
 
-            if((currentYear == mYear && currentMonth > month) ||
+            if ((currentYear == mYear && currentMonth > month) ||
                     (currentMonth == Calendar.JANUARY && month == Calendar.DECEMBER)) {
                 //Dont show rows with only next month..
                 row.setVisibility(GONE);
@@ -104,6 +105,11 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
                 cal.set(Calendar.DAY_OF_YEAR, cal.get(Calendar.DAY_OF_YEAR) + 1);
             }
         }
+
+        if(mSelectedMonthDay > 0)
+            setSelected(mSelectedMonthDay);
+        else
+            setSelected(1);
     }
 
 
@@ -127,15 +133,18 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
     }
 
     public void setSelected(int monthDay) {
+        mSelectedMonthDay = monthDay;
         CheckedTextView cell = getCellForDay(monthDay);
-        if(cell != null)
+        if (cell != null) {
+            mSelectedMonthDay = -1;
             onClick(cell);
+        }
     }
 
     public void mark(int monthDay, boolean marked) {
         CheckedTextView cell = getCellForDay(monthDay);
-        if(cell != null) {
-            if(marked) {
+        if (cell != null) {
+            if (marked) {
                 cell.setTextColor(getResources().getColorStateList(R.color.calendar_text_marked_selector));
             } else {
                 cell.setTextColor(getResources().getColorStateList(R.color.calendar_text_selector));
@@ -143,15 +152,17 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
         }
     }
 
-    private CheckedTextView getCellForDay(int monthDay){
+    private CheckedTextView getCellForDay(int monthDay) {
         final Calendar cal = Calendar.getInstance();
         for (int i = 1; i < 7; i++) {
             CalendarRowView row = (CalendarRowView) mGrid.getChildAt(i);
             for (int c = 0; c < 7; c++) {
                 final CheckedTextView cell = (CheckedTextView) row.getChildAt(c);
-                cal.setTime((Date) cell.getTag());
-                if(cal.get(Calendar.DAY_OF_MONTH) == monthDay) {
-                    return cell;
+                if (cell.getTag() != null) {
+                    cal.setTime((Date) cell.getTag());
+                    if (cal.get(Calendar.DAY_OF_MONTH) == monthDay && cal.get(Calendar.MONTH) == mMonth) {
+                        return cell;
+                    }
                 }
             }
         }
@@ -160,7 +171,7 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
     }
 
     public Date getSelectedDate() {
-        if(mCurrentCheckedCell != null)
+        if (mCurrentCheckedCell != null)
             return (Date) mCurrentCheckedCell.getTag();
 
         return null;
