@@ -72,17 +72,20 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
         int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
         if (dayOfWeek == firstDayOfWeek) {
             //Hooray, no offset needed..
-        } else if (dayOfWeek > firstDayOfWeek) {
-            cal.add(Calendar.DAY_OF_YEAR, firstDayOfWeek - dayOfWeek);
-        } else if (dayOfWeek < firstDayOfWeek) {
-            cal.add(Calendar.DAY_OF_YEAR, dayOfWeek - firstDayOfWeek);
+        } else{
+            while(dayOfWeek != firstDayOfWeek) {
+                cal.add(Calendar.DAY_OF_YEAR, -1);
+                dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+            }
         }
 
         for (int i = 1; i < 7; i++) {
             CalendarRowView row = (CalendarRowView) mGrid.getChildAt(i);
             final int currentMonth = cal.get(Calendar.MONTH);
+            final int currentYear = cal.get(Calendar.YEAR);
 
-            if(currentMonth > month) {
+            if((currentYear == mYear && currentMonth > month) ||
+                    (currentMonth == Calendar.JANUARY && month == Calendar.DECEMBER)) {
                 //Dont show rows with only next month..
                 row.setVisibility(GONE);
                 break;
@@ -152,6 +155,13 @@ public class MonthView extends LinearLayout implements View.OnClickListener {
                 }
             }
         }
+
+        return null;
+    }
+
+    public Date getSelectedDate() {
+        if(mCurrentCheckedCell != null)
+            return (Date) mCurrentCheckedCell.getTag();
 
         return null;
     }
